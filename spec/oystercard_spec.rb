@@ -8,6 +8,10 @@ describe Oystercard do
     expect(subject.balance).to eq 0
   end
 
+  it 'journeys stars with an empty array' do 
+    expect(subject.journeys).to be_empty
+  end 
+
   it '#top_up is adding money to the balance' do
     expect { subject.top_up(5) }.to change { subject.balance }.by 5
   end
@@ -36,21 +40,29 @@ describe Oystercard do
     expect { subject.touch_in(station) }.to change { subject.entry_station }.from(nil).to(station)
   end
 
+  it "#touch_in and touch_out will create a new journey" do 
+    subject.top_up(10)
+    subject.touch_in(station)
+    subject.touch_out(station)
+    expect(subject.journeys).to eq [{start:station,finish:station}]
+end 
+
     it '#touch_out to change in_journey to false' do 
     subject.top_up(10)
     subject.touch_in(station)
-    expect { subject.touch_out }.to change{ subject.in_journey }.from(true).to(false)
+    expect { subject.touch_out(station) }.to change{ subject.in_journey }.from(true).to(false)
   end
 
   it '#touch_out will deduct minimum fare from balance' do 
     subject.top_up(10)
-    expect { subject.touch_out }.to change{ subject.balance }.by (-Oystercard::MINIMUM_FARE)
+    subject.touch_in(station)
+    expect { subject.touch_out(station) }.to change{ subject.balance }.by (-Oystercard::MINIMUM_FARE)
   end
 
   it '#touch_out will forget the entry_station' do
     subject.top_up(10)
     subject.touch_in(station)
-    expect { subject.touch_out }.to change{ subject.entry_station }.from(station).to(nil)
+    expect { subject.touch_out(station) }.to change{ subject.entry_station }.from(station).to(nil)
   end
 
 end
