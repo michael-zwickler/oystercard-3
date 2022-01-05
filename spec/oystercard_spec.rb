@@ -2,6 +2,8 @@ require 'oystercard'
 
 describe Oystercard do
 
+  let(:station) { double :station }
+
   it 'balance starts with zero' do
     expect(subject.balance).to eq 0
   end
@@ -22,22 +24,33 @@ describe Oystercard do
 
   it '#touch_in to change in_journey to true' do 
     subject.top_up(10)
-    expect { subject.touch_in }.to change{ subject.in_journey }.from(false).to(true)
+    expect { subject.touch_in(station) }.to change{ subject.in_journey }.from(false).to(true)
   end 
 
   it 'will not touch_in when below minimum balance' do
-    expect { subject.touch_in }.to raise_error('Insufficient funds on card')  
+    expect { subject.touch_in(station) }.to raise_error('Insufficient funds on card')  
   end
-  
-  it '#touch_out to change in_journey to false' do 
+
+  it '#touch_in will assign the entry station to the oystercard' do
     subject.top_up(10)
-    subject.touch_in
+    expect { subject.touch_in(station) }.to change { subject.entry_station }.from(nil).to(station)
+  end
+
+    it '#touch_out to change in_journey to false' do 
+    subject.top_up(10)
+    subject.touch_in(station)
     expect { subject.touch_out }.to change{ subject.in_journey }.from(true).to(false)
   end
 
   it '#touch_out will deduct minimum fare from balance' do 
     subject.top_up(10)
-    expect { subject.touch_out }.to change{subject.balance}.by (-Oystercard::MINIMUM_FARE)
-end 
-  
+    expect { subject.touch_out }.to change{ subject.balance }.by (-Oystercard::MINIMUM_FARE)
+  end
+
+  it '#touch_out will forget the entry_station' do
+    subject.top_up(10)
+    subject.touch_in(station)
+    expect { subject.touch_out }.to change{ subject.entry_station }.from(station).to(nil)
+  end
+
 end
