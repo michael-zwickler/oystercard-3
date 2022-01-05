@@ -16,28 +16,28 @@ describe Oystercard do
     expect{ subject.top_up 1 }.to raise_error 'You have reached your balance limit'
   end
 
-  it '#deduct fare from card' do
-    subject.top_up(20)
-    expect { subject.deduct(10) }.to change { subject.balance }.by -10
-  end
-
-  it 'tells us in_journey is false by default' do 
-    expect(subject.in_journey?).to be false
+  it 'tells us in_journeyis false by default' do 
+    expect(subject.in_journey).to be false
   end 
 
-  it '#touch_in to change in_journey? to true' do 
+  it '#touch_in to change in_journey to true' do 
     subject.top_up(10)
-    expect { subject.touch_in }.to change{ subject.in_journey? }.from(false).to(true)
+    expect { subject.touch_in }.to change{ subject.in_journey }.from(false).to(true)
   end 
 
-  it '#touch_out to change in_journey to false' do 
-    subject.top_up(10)
-    subject.touch_in
-    expect { subject.touch_out }.to change{ subject.in_journey? }.from(true).to(false)
-  end
-  
   it 'will not touch_in when below minimum balance' do
     expect { subject.touch_in }.to raise_error('Insufficient funds on card')  
   end
+  
+  it '#touch_out to change in_journey to false' do 
+    subject.top_up(10)
+    subject.touch_in
+    expect { subject.touch_out }.to change{ subject.in_journey }.from(true).to(false)
+  end
+
+  it '#touch_out will deduct minimum fare from balance' do 
+    subject.top_up(10)
+    expect { subject.touch_out }.to change{subject.balance}.by (-Oystercard::MINIMUM_FARE)
+end 
   
 end
