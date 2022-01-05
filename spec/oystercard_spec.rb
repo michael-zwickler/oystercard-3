@@ -6,9 +6,8 @@ describe Oystercard do
     expect(subject.balance).to eq 0
   end
 
-  it 'adding money the balance' do
-    oyster = Oystercard.new
-    expect(oyster.top_up(5)).to eq 5
+  it '#top_up is adding money to the balance' do
+    expect { subject.top_up(5) }.to change { subject.balance }.by 5
   end
 
   it 'has a balance limit' do
@@ -19,12 +18,7 @@ describe Oystercard do
 
 it '#deduct fare from card' do
   subject.top_up(20)
-  balance_before = subject.balance()
-  subject.deduct(10)
-  balance_after = subject.balance()
-  delta = balance_before - balance_after
-  
-  expect(delta).to eq (10)
+  expect { subject.deduct(10) }.to change { subject.balance }.by -10
 end
 
 end
