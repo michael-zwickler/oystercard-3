@@ -14,7 +14,7 @@ class OysterCard
   def top_up(num)
     fail 'You have reached upper balance limit' if num + @balance > MAXIMUM_BALANCE
     @balance += num
-  end
+   end
 
   def touch_in(entry_station)
     fail 'Insufficient funds on card to touch in' if @balance < MINIMUM_FARE
