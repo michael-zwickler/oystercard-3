@@ -1,4 +1,5 @@
 require 'oystercard'
+require 'journey'
 
 describe OysterCard do
 
@@ -41,9 +42,6 @@ describe OysterCard do
       it 'changes in_journey to true' do 
         expect { subject.touch_in(station) }.to change{ subject.in_journey }.from(false).to(true)
       end 
-      it 'will assign the entry station to the oystercard' do
-        expect { subject.touch_in(station) }.to change { subject.entry_station }.from(nil).to(station)
-      end
     end
     describe '#top_up' do
       it 'adds money to the balance' do
@@ -59,16 +57,17 @@ describe OysterCard do
         subject.touch_in(station)
         expect { subject.touch_out(station) }.to change{ subject.balance }.by (-OysterCard::MINIMUM_FARE)
       end
-      it 'will forget the entry_station' do
-        subject.touch_in(station)
-        expect { subject.touch_out(station) }.to change{ subject.entry_station }.from(station).to(nil)
-      end
     end
     describe '#touch_in and #touch_out' do
-      it "will create a new journey" do 
+      it "will create a new journey" do
+        
+        test_journey = Journey.new
+        test_journey.begin_journey(station)
+        test_journey.end_journey(station)
+
         subject.touch_in(station)
         subject.touch_out(station)
-        expect(subject.journeys).to eq [{start:station,finish:station}]
+        expect(subject.journeys.first.reader).to eq test_journey.reader
       end
     end
   end
