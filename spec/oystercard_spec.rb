@@ -1,68 +1,76 @@
 require 'oystercard'
 
-describe Oystercard do
+describe OysterCard do
 
   let(:station) { double :station }
 
-  it 'balance starts with zero' do
-    expect(subject.balance).to eq 0
+  context 'when new oystercard created' do
+    describe 'balance' do
+      it { expect(subject.balance).to eq 0 }
+    end
+    describe 'journeys' do
+      it { expect(subject.journeys).to be_empty }
+    end
+    describe '#in_journey' do 
+      it { expect(subject.in_journey).to be false }
+    end 
   end
 
-  it 'journeys stars with an empty array' do 
-    expect(subject.journeys).to be_empty
-  end 
-
-  it '#top_up is adding money to the balance' do
-    expect { subject.top_up(5) }.to change { subject.balance }.by 5
+  context 'when oystercard balance is out of limits' do
+    describe '#top_up' do
+      it 'throws upper balance error' do
+        subject.top_up(OysterCard::MAXIMUM_BALANCE)
+        expect{ subject.top_up 1 }.to raise_error 'You have reached upper balance limit'
+      end
+    end
+    describe '#touch_in' do
+      it 'throws insufficient balance error' do
+        expect { subject.touch_in(station) }.to raise_error('Insufficient funds on card to touch in')  
+      end
+    end
   end
 
-  it 'has a upper balance limit' do
-    maximum_balance = Oystercard::MAXIMUM_BALANCE
-    subject.top_up(maximum_balance)
-    expect{ subject.top_up 1 }.to raise_error 'You have reached your balance limit'
+  context 'when oystercard balance is within limits' do
+    subject do
+      card = OysterCard.new()
+      card.top_up(10)
+      break card
+    end
+
+    describe '#touch_in' do
+      it 'changes in_journey to true' do 
+        expect { subject.touch_in(station) }.to change{ subject.in_journey }.from(false).to(true)
+      end 
+      it 'will assign the entry station to the oystercard' do
+        expect { subject.touch_in(station) }.to change { subject.entry_station }.from(nil).to(station)
+      end
+    end
+    describe '#top_up' do
+      it 'adds money to the balance' do
+        expect { subject.top_up(5) }.to change { subject.balance }.by 5
+      end
+    end
+    describe '#touch_out' do
+      it 'changes in_journey to false' do 
+        subject.touch_in(station)
+        expect { subject.touch_out(station) }.to change{ subject.in_journey }.from(true).to(false)
+      end
+      it 'deducts minimum fare from balance' do 
+        subject.touch_in(station)
+        expect { subject.touch_out(station) }.to change{ subject.balance }.by (-OysterCard::MINIMUM_FARE)
+      end
+      it 'will forget the entry_station' do
+        subject.touch_in(station)
+        expect { subject.touch_out(station) }.to change{ subject.entry_station }.from(station).to(nil)
+      end
+    end
+    describe '#touch_in and #touch_out' do
+      it "will create a new journey" do 
+        subject.touch_in(station)
+        subject.touch_out(station)
+        expect(subject.journeys).to eq [{start:station,finish:station}]
+      end
+    end
   end
-
-  it 'tells us in_journeyis false by default' do 
-    expect(subject.in_journey).to be false
-  end 
-
-  it '#touch_in to change in_journey to true' do 
-    subject.top_up(10)
-    expect { subject.touch_in(station) }.to change{ subject.in_journey }.from(false).to(true)
-  end 
-
-  it 'will not touch_in when below minimum balance' do
-    expect { subject.touch_in(station) }.to raise_error('Insufficient funds on card')  
-  end
-
-  it '#touch_in will assign the entry station to the oystercard' do
-    subject.top_up(10)
-    expect { subject.touch_in(station) }.to change { subject.entry_station }.from(nil).to(station)
-  end
-
-  it "#touch_in and touch_out will create a new journey" do 
-    subject.top_up(10)
-    subject.touch_in(station)
-    subject.touch_out(station)
-    expect(subject.journeys).to eq [{start:station,finish:station}]
-end 
-
-    it '#touch_out to change in_journey to false' do 
-    subject.top_up(10)
-    subject.touch_in(station)
-    expect { subject.touch_out(station) }.to change{ subject.in_journey }.from(true).to(false)
-  end
-
-  it '#touch_out will deduct minimum fare from balance' do 
-    subject.top_up(10)
-    subject.touch_in(station)
-    expect { subject.touch_out(station) }.to change{ subject.balance }.by (-Oystercard::MINIMUM_FARE)
-  end
-
-  it '#touch_out will forget the entry_station' do
-    subject.top_up(10)
-    subject.touch_in(station)
-    expect { subject.touch_out(station) }.to change{ subject.entry_station }.from(station).to(nil)
-  end
-
 end
+

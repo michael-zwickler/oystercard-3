@@ -1,4 +1,4 @@
-class Oystercard
+class OysterCard
   attr_reader :balance
   attr_reader :entry_station
   attr_reader :journeys
@@ -12,12 +12,12 @@ class Oystercard
   end
 
   def top_up(num)
-    fail 'You have reached your balance limit' if num + @balance > MAXIMUM_BALANCE
+    fail 'You have reached upper balance limit' if num + @balance > MAXIMUM_BALANCE
     @balance += num
   end
 
   def touch_in(entry_station)
-    fail 'Insufficient funds on card' if @balance < MINIMUM_FARE
+    fail 'Insufficient funds on card to touch in' if @balance < MINIMUM_FARE
     @entry_station = entry_station
     @journeys << {start:entry_station}
   end 
